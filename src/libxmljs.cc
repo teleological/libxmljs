@@ -109,6 +109,13 @@ void xmlDeregisterNodeCallback(xmlNode* xml_obj)
 
         // save a reference to the doc so we can still `unref` it
         node->doc = xml_obj->doc;
+        /*
+        if (node->doc)
+        {
+            XmlDocument* doc = static_cast<XmlDocument*>(this->doc->_private);
+            doc->unref();
+        }
+        */
     }
     return;
 }

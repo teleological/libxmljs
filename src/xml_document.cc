@@ -4,6 +4,7 @@
 #include <node_buffer.h>
 
 #include <cstring>
+#include <iostream>
 
 //#include <libxml/tree.h>
 #include <libxml/HTMLtree.h>
@@ -454,6 +455,7 @@ XmlDocument::XmlDocument(xmlDoc* doc)
 
 XmlDocument::~XmlDocument()
 {
+    std::cout << "DESTROY: document\n";
     xml_obj->_private = NULL;
     xmlFreeDoc(xml_obj);
 }

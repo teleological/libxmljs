@@ -21,6 +21,8 @@ public:
     explicit XmlNode(xmlNode* node);
     virtual ~XmlNode();
 
+    virtual void Unref();
+
     static void Initialize(v8::Handle<v8::Object> target);
     static Nan::Persistent<v8::FunctionTemplate> constructor_template;
 

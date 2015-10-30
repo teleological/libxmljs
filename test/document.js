@@ -331,9 +331,18 @@ module.exports.validate_memory_usage = function(assert) {
         xmlDoc.validate(xsdDoc);
     }
 
+    console.log("*** GC 1");
     global.gc();
-
+    console.log("*** GC 2");
+    global.gc();
+    console.log("*** GC 3");
+    global.gc();
+    console.log("*** GC 4");
+    global.gc();
+    console.log("*** GC 5");
+    global.gc();
     var maxRssDelta = /^v0\.8/.test(process.version) ? (initialMemory.rss / 2) : 2000000;
+    console.log("Memory used", (process.memoryUsage().rss - initialMemory.rss));
     assert.ok(process.memoryUsage().rss - initialMemory.rss < maxRssDelta);
     assert.done();
 };
@@ -374,9 +383,12 @@ module.exports.validate_rng_memory_usage = function(assert) {
         xmlDoc.rngValidate(rngDoc);
     }
 
+    console.log("*** GC 1");
     global.gc();
-
+    console.log("*** GC 2");
+    global.gc();
     var maxRssDelta = /^v0\.8/.test(process.version) ? (initialMemory.rss / 2) : 2000000;
+    console.log("Memory used", (process.memoryUsage().rss - initialMemory.rss));
     assert.ok(process.memoryUsage().rss - initialMemory.rss < maxRssDelta);
     assert.done();
 };

@@ -1,6 +1,7 @@
 // Copyright 2009, Squish Tech, LLC.
 
 #include <node.h>
+#include <iostream>
 
 #include <libxml/xmlsave.h>
 
@@ -216,14 +217,14 @@ XmlNode::New(xmlNode* node)
 {
   switch (node->type) {
   case XML_ATTRIBUTE_NODE:
-    return XmlAttribute::New(reinterpret_cast<xmlAttr *>(node));
+    return XmlAttribute::New(reinterpret_cast<xmlAttr *>(node)); // scope
 
   default:
     // if we don't know how to convert to specific libxmljs wrapper,
     // wrap in an XmlElement.  There should probably be specific
     // wrapper types for text nodes etc., but this is what existing
     // code expects.
-    return XmlElement::New(node);
+    return XmlElement::New(node); // scope
   }
 }
 
@@ -248,6 +249,26 @@ XmlNode::XmlNode(xmlNode* node) : xml_obj(node) {
 
 XmlNode::~XmlNode() {
 
+    if (xml_obj->type == XML_ATTRIBUTE_NODE) {
+      std::cout << "DESTROY: attribute\n";
+    }
+    else if (xml_obj->type == XML_ELEMENT_NODE) {
+      std::cout << "DESTROY: element\n";
+    }
+    else if (xml_obj->type == XML_TEXT_NODE) {
+      std::cout << "DESTROY: text\n";
+    }
+    else if (xml_obj->type == XML_COMMENT_NODE) {
+      std::cout << "DESTROY: comment\n";
+    }
+    else if (xml_obj->type == XML_DOCUMENT_NODE) {
+      std::cout << "DESTROY: document\n";
+    }
+    else {
+      std::cout << "DESTROY: node\n";
+    }
+
+
     // check if `xml_obj` has been freed so we don't access bad memory
     if (this->freed)
     {
@@ -266,15 +287,22 @@ XmlNode::~XmlNode() {
         return;
     }
 
+
     xml_obj->_private = NULL;
     // release the hold and allow the document to be freed
-    XmlDocument* doc = static_cast<XmlDocument*>(xml_obj->doc->_private);
-    doc->unref();
+    // XmlDocument* doc = static_cast<XmlDocument*>(xml_obj->doc->_private);
+    // doc->unref();
 
     // We do not free the xmlNode here if it is linked to a document
     // It will be freed when the doc is freed
     if (xml_obj->parent == NULL)
       xmlFreeNode(xml_obj);
+      // BUG: wrapped descendants may still be attached to event loop
+
+    // BUG: unlinked child can't unref parent
+    // var child = parent.node("child"); // parent get ref'd
+    // child.remove(); // parent == NULL, but parent not unref'd
+    // child = null; global.gc(); // child wrapper is destroyed
 
     // if there's a parent then Unref() it
     else if (xml_obj->parent->_private != NULL &&
@@ -285,6 +313,30 @@ XmlNode::~XmlNode() {
         // make sure Unref() is necessary
         if (parent->refs_ > 0)
         {
+            std::cout << "DESTRUCTOR: unref parent\n";
+            parent->Unref();
+        }
+    }
+    // BUG: may not have ref'd parent; parent may have no refs or been ref'd by sibling
+}
+
+void
+XmlNode::Unref() {
+    ObjectWrap::Unref();
+    if ((refs_ == 0) &&
+        (xml_obj->parent != NULL) &&
+        (xml_obj->parent->_private != NULL) &&
+        ((void*)xml_obj->doc != (void*)xml_obj->parent))
+    {
+
+        XmlDocument* doc = static_cast<XmlDocument*>(xml_obj->doc->_private);
+        std::cout << "WEAK: unref doc\n";
+        doc->unref();
+
+        XmlNode* parent = static_cast<XmlNode*>(xml_obj->parent->_private);
+        if (parent->refs_ > 0)
+        {
+            std::cout << "WEAK: unref parent\n";
             parent->Unref();
         }
     }
@@ -292,7 +344,7 @@ XmlNode::~XmlNode() {
 
 v8::Local<v8::Value>
 XmlNode::get_doc() {
-    return XmlDocument::New(xml_obj->doc);
+    return XmlDocument::New(xml_obj->doc); // scope
 }
 
 v8::Local<v8::Value>

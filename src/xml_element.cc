@@ -308,7 +308,7 @@ void
 XmlElement::set_attr(const char* name,
                      const char* value)
 {
-    XmlAttribute::New(xml_obj, (const xmlChar*)name, (const xmlChar*)value);
+    XmlAttribute::New(xml_obj, (const xmlChar*)name, (const xmlChar*)value); // scope?
 }
 
 v8::Local<v8::Value>
@@ -515,7 +515,7 @@ XmlElement::import_element(XmlElement *element) {
         // we have to have handles to attach them to
         // the problem with this approach tho is that the object could be reclaimed
         // what prevents v8 from garbage collecting it?
-        v8::Local<v8::Object> new_elem = XmlElement::New(new_child);
+        v8::Local<v8::Object> new_elem = XmlElement::New(new_child); // scope?
         return Nan::ObjectWrap::Unwrap<XmlElement>(new_elem);
     }
 }

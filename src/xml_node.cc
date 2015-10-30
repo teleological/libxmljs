@@ -431,52 +431,53 @@ XmlNode::remove() {
 
 v8::Local<v8::Value>
 XmlNode::get_type() {
+  Nan::EscapableHandleScope scope;
   switch (xml_obj->type) {
   case  XML_ELEMENT_NODE:
-    return Nan::New<v8::String>("element").ToLocalChecked();
+    return scope.Escape(Nan::New<v8::String>("element").ToLocalChecked());
   case XML_ATTRIBUTE_NODE:
-    return Nan::New<v8::String>("attribute").ToLocalChecked();
+    return scope.Escape(Nan::New<v8::String>("attribute").ToLocalChecked());
   case XML_TEXT_NODE:
-    return Nan::New<v8::String>("text").ToLocalChecked();
+    return scope.Escape(Nan::New<v8::String>("text").ToLocalChecked());
   case XML_CDATA_SECTION_NODE:
-    return Nan::New<v8::String>("cdata").ToLocalChecked();
+    return scope.Escape(Nan::New<v8::String>("cdata").ToLocalChecked());
   case XML_ENTITY_REF_NODE:
-    return Nan::New<v8::String>("entity_ref").ToLocalChecked();
+    return scope.Escape(Nan::New<v8::String>("entity_ref").ToLocalChecked());
   case XML_ENTITY_NODE:
-    return Nan::New<v8::String>("entity").ToLocalChecked();
+    return scope.Escape(Nan::New<v8::String>("entity").ToLocalChecked());
   case XML_PI_NODE:
-    return Nan::New<v8::String>("pi").ToLocalChecked();
+    return scope.Escape(Nan::New<v8::String>("pi").ToLocalChecked());
   case XML_COMMENT_NODE:
-    return Nan::New<v8::String>("comment").ToLocalChecked();
+    return scope.Escape(Nan::New<v8::String>("comment").ToLocalChecked());
   case XML_DOCUMENT_NODE:
-    return Nan::New<v8::String>("document").ToLocalChecked();
+    return scope.Escape(Nan::New<v8::String>("document").ToLocalChecked());
   case XML_DOCUMENT_TYPE_NODE:
-    return Nan::New<v8::String>("document_type").ToLocalChecked();
+    return scope.Escape(Nan::New<v8::String>("document_type").ToLocalChecked());
   case XML_DOCUMENT_FRAG_NODE:
-    return Nan::New<v8::String>("document_frag").ToLocalChecked();
+    return scope.Escape(Nan::New<v8::String>("document_frag").ToLocalChecked());
   case XML_NOTATION_NODE:
-    return Nan::New<v8::String>("notation").ToLocalChecked();
+    return scope.Escape(Nan::New<v8::String>("notation").ToLocalChecked());
   case XML_HTML_DOCUMENT_NODE:
-    return Nan::New<v8::String>("html_document").ToLocalChecked();
+    return scope.Escape(Nan::New<v8::String>("html_document").ToLocalChecked());
   case XML_DTD_NODE:
-    return Nan::New<v8::String>("dtd").ToLocalChecked();
+    return scope.Escape(Nan::New<v8::String>("dtd").ToLocalChecked());
   case XML_ELEMENT_DECL:
-    return Nan::New<v8::String>("element_decl").ToLocalChecked();
+    return scope.Escape(Nan::New<v8::String>("element_decl").ToLocalChecked());
   case XML_ATTRIBUTE_DECL:
-    return Nan::New<v8::String>("attribute_decl").ToLocalChecked();
+    return scope.Escape(Nan::New<v8::String>("attribute_decl").ToLocalChecked());
   case XML_ENTITY_DECL:
-    return Nan::New<v8::String>("entity_decl").ToLocalChecked();
+    return scope.Escape(Nan::New<v8::String>("entity_decl").ToLocalChecked());
   case XML_NAMESPACE_DECL:
-    return Nan::New<v8::String>("namespace_decl").ToLocalChecked();
+    return scope.Escape(Nan::New<v8::String>("namespace_decl").ToLocalChecked());
   case XML_XINCLUDE_START:
-    return Nan::New<v8::String>("xinclude_start").ToLocalChecked();
+    return scope.Escape(Nan::New<v8::String>("xinclude_start").ToLocalChecked());
   case XML_XINCLUDE_END:
-    return Nan::New<v8::String>("xinclude_end").ToLocalChecked();
+    return scope.Escape(Nan::New<v8::String>("xinclude_end").ToLocalChecked());
   case XML_DOCB_DOCUMENT_NODE:
-    return Nan::New<v8::String>("docb_document").ToLocalChecked();
+    return scope.Escape(Nan::New<v8::String>("docb_document").ToLocalChecked());
   }
 
-  return Nan::Null();
+  return scope.Escape(Nan::Null());
 }
 
 void

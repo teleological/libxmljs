@@ -391,12 +391,13 @@ XmlElement::get_child_nodes() {
 
 v8::Local<v8::Value>
 XmlElement::get_path() {
+  Nan::EscapableHandleScope scope;
   xmlChar* path = xmlGetNodePath(xml_obj);
   const char* return_path = path ? reinterpret_cast<char*>(path) : "";
   int str_len = xmlStrlen((const xmlChar*)return_path);
   v8::Local<v8::String> js_obj = Nan::New<v8::String>(return_path, str_len).ToLocalChecked();
   xmlFree(path);
-  return js_obj;
+  return scope.Escape(js_obj);
 }
 
 void
@@ -408,15 +409,16 @@ XmlElement::set_content(const char* content) {
 
 v8::Local<v8::Value>
 XmlElement::get_content() {
+  Nan::EscapableHandleScope scope;
   xmlChar* content = xmlNodeGetContent(xml_obj);
   if (content) {
     v8::Local<v8::String> ret_content =
       Nan::New<v8::String>((const char *)content).ToLocalChecked();
     xmlFree(content);
-    return ret_content;
+    return scope.Escape(ret_content);
   }
 
-  return Nan::New<v8::String>("").ToLocalChecked();
+  return scope.Escape(Nan::New<v8::String>("").ToLocalChecked());
 }
 
 v8::Local<v8::Value>
@@ -459,14 +461,15 @@ XmlElement::get_prev_element() {
 v8::Local<v8::Object>
 XmlElement::New(xmlNode* node)
 {
+    Nan::EscapableHandleScope scope;
     if (node->_private) {
-        return static_cast<XmlNode*>(node->_private)->handle();
+        return scope.Escape(static_cast<XmlNode*>(node->_private)->handle());
     }
 
     XmlElement* element = new XmlElement(node);
     v8::Local<v8::Object> obj = Nan::New(constructor_template)->GetFunction()->NewInstance();
     element->Wrap(obj);
-    return obj;
+    return scope.Escape(obj);
 }
 
 XmlElement::XmlElement(xmlNode* node)

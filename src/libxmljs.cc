@@ -1,5 +1,6 @@
 // Copyright 2009, Squish Tech, LLC.
 
+#include <iostream>
 #include <v8.h>
 
 #include <libxml/xmlmemory.h>
@@ -100,22 +101,12 @@ char* xmlMemoryStrdupWrap(const char* str)
 // callback function for `xmlDeregisterNodeDefault`
 void xmlDeregisterNodeCallback(xmlNode* xml_obj)
 {
-    if (xml_obj->_private)
+    if (xml_obj->_private) // proxy is attached -- hopefully unreferenced!
     {
+        std::cout << "Deregistering free node: " << xml_obj->type << "\n";
         XmlNode* node = static_cast<XmlNode*>(xml_obj->_private);
-
-        // flag the XmlNode object as freed
-        node->freed = true;
-
-        // save a reference to the doc so we can still `unref` it
-        node->doc = xml_obj->doc;
-        /*
-        if (node->doc)
-        {
-            XmlDocument* doc = static_cast<XmlDocument*>(this->doc->_private);
-            doc->unref();
-        }
-        */
+        node->xml_obj = NULL; // detach proxy from freed node
+        xml_obj->_private = NULL; // detach node from proxy
     }
     return;
 }

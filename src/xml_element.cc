@@ -309,6 +309,7 @@ void
 XmlElement::set_attr(const char* name,
                      const char* value)
 {
+    Nan::HandleScope scope;
     XmlAttribute::New(xml_obj, (const xmlChar*)name, (const xmlChar*)value);
 }
 

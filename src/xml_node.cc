@@ -214,16 +214,17 @@ NAN_METHOD(XmlNode::Clone) {
 v8::Local<v8::Value>
 XmlNode::New(xmlNode* node)
 {
+  Nan::EscapableHandleScope scope;
   switch (node->type) {
   case XML_ATTRIBUTE_NODE:
-    return XmlAttribute::New(reinterpret_cast<xmlAttr *>(node));
+    return scope.Escape(XmlAttribute::New(reinterpret_cast<xmlAttr *>(node)));
 
   default:
     // if we don't know how to convert to specific libxmljs wrapper,
     // wrap in an XmlElement.  There should probably be specific
     // wrapper types for text nodes etc., but this is what existing
     // code expects.
-    return XmlElement::New(node);
+    return scope.Escape(XmlElement::New(node));
   }
 }
 
@@ -292,7 +293,8 @@ XmlNode::~XmlNode() {
 
 v8::Local<v8::Value>
 XmlNode::get_doc() {
-    return XmlDocument::New(xml_obj->doc);
+    Nan::EscapableHandleScope scope;
+    return scope.Escape(XmlDocument::New(xml_obj->doc));
 }
 
 v8::Local<v8::Value>

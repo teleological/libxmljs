@@ -139,15 +139,17 @@ XmlAttribute::set_value(const char* value) {
 
 v8::Local<v8::Value>
 XmlAttribute::get_element() {
-    return XmlElement::New(xml_obj->parent);
+    Nan::EscapableHandleScope scope;
+    return scope.Escape(XmlElement::New(xml_obj->parent));
 }
 
 v8::Local<v8::Value>
 XmlAttribute::get_namespace() {
+    Nan::EscapableHandleScope scope;
     if (!xml_obj->ns) {
-        return Nan::Null();
+        return scope.Escape(Nan::Null());
     }
-    return XmlNamespace::New(xml_obj->ns);
+    return scope.Escape(XmlNamespace::New(xml_obj->ns));
 }
 
 void

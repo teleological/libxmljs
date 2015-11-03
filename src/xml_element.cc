@@ -98,20 +98,18 @@ NAN_METHOD(XmlElement::Attrs) {
 }
 
 NAN_METHOD(XmlElement::AddChild) {
-  Nan::HandleScope scope;
   XmlElement* element = Nan::ObjectWrap::Unwrap<XmlElement>(info.Holder());
   assert(element);
 
   XmlElement* child = Nan::ObjectWrap::Unwrap<XmlElement>(info[0]->ToObject());
   assert(child);
 
-  child = element->import_element(child);
-
-  if(child == NULL) {
+  xmlNode *imported_child = element->import_element(child);
+  if (imported_child == NULL) {
       return Nan::ThrowError("Could not add child. Failed to copy node to new Document.");
   }
+  element->add_child(imported_child);
 
-  element->add_child(child);
   return info.GetReturnValue().Set(info.Holder());
 }
 
@@ -229,37 +227,38 @@ NAN_METHOD(XmlElement::Path) {
 }
 
 NAN_METHOD(XmlElement::AddPrevSibling) {
-  Nan::HandleScope scope;
   XmlElement* element = Nan::ObjectWrap::Unwrap<XmlElement>(info.Holder());
   assert(element);
 
   XmlElement* new_sibling = Nan::ObjectWrap::Unwrap<XmlElement>(info[0]->ToObject());
   assert(new_sibling);
 
-  new_sibling = element->import_element(new_sibling);
-
-  element->add_prev_sibling(new_sibling);
+  xmlNode *imported_sibling = element->import_element(new_sibling);
+  if (imported_sibling == NULL) {
+      return Nan::ThrowError("Could not add sibling. Failed to copy node to new Document.");
+  }
+  element->add_prev_sibling(imported_sibling);
 
   return info.GetReturnValue().Set(info[0]);
 }
 
 NAN_METHOD(XmlElement::AddNextSibling) {
-  Nan::HandleScope scope;
   XmlElement* element = Nan::ObjectWrap::Unwrap<XmlElement>(info.Holder());
   assert(element);
 
   XmlElement* new_sibling = Nan::ObjectWrap::Unwrap<XmlElement>(info[0]->ToObject());
   assert(new_sibling);
 
-  new_sibling = element->import_element(new_sibling);
-
-  element->add_next_sibling(new_sibling);
+  xmlNode *imported_sibling = element->import_element(new_sibling);
+  if (imported_sibling == NULL) {
+      return Nan::ThrowError("Could not add sibling. Failed to copy node to new Document.");
+  }
+  element->add_next_sibling(imported_sibling);
 
   return info.GetReturnValue().Set(info[0]);
 }
 
 NAN_METHOD(XmlElement::Replace) {
-  Nan::HandleScope scope;
   XmlElement* element = Nan::ObjectWrap::Unwrap<XmlElement>(info.Holder());
   assert(element);
 
@@ -269,9 +268,11 @@ NAN_METHOD(XmlElement::Replace) {
     XmlElement* new_sibling = Nan::ObjectWrap::Unwrap<XmlElement>(info[0]->ToObject());
     assert(new_sibling);
 
-    new_sibling = element->import_element(new_sibling);
-
-    element->replace_element(new_sibling);
+    xmlNode *imported_sibling = element->import_element(new_sibling);
+    if (imported_sibling == NULL) {
+        return Nan::ThrowError("Could not replace. Failed to copy node to new Document.");
+    }
+    element->replace_element(imported_sibling);
   }
 
   return info.GetReturnValue().Set(info[0]);
@@ -332,14 +333,8 @@ XmlElement::get_attrs() {
 }
 
 void
-XmlElement::add_child(XmlElement* child) {
-  xmlNodePtr node = xmlAddChild(xml_obj, child->xml_obj);
-  if (node != child->xml_obj)
-  {
-    // xmlAddChild deleted child->xml_obj by merging it with xml_obj last child
-    // recreate a valid xml_obj for child to avoid any memory issue
-    child->xml_obj = xmlNewDocText(xml_obj->doc, (const xmlChar*) "");
-  }
+XmlElement::add_child(xmlNode* child) {
+  xmlAddChild(xml_obj, child);
 }
 
 void
@@ -478,18 +473,18 @@ XmlElement::XmlElement(xmlNode* node)
 }
 
 void
-XmlElement::add_prev_sibling(XmlElement* element) {
-  xmlAddPrevSibling(xml_obj, element->xml_obj);
+XmlElement::add_prev_sibling(xmlNode* element) {
+  xmlAddPrevSibling(xml_obj, element);
 }
 
 void
-XmlElement::add_next_sibling(XmlElement* element) {
-  xmlAddNextSibling(xml_obj, element->xml_obj);
+XmlElement::add_next_sibling(xmlNode* element) {
+  xmlAddNextSibling(xml_obj, element);
 }
 
 void
-XmlElement::replace_element(XmlElement* element) {
-  xmlReplaceNode(xml_obj, element->xml_obj);
+XmlElement::replace_element(xmlNode* element) {
+  xmlReplaceNode(xml_obj, element);
 }
 
 void
@@ -498,26 +493,10 @@ XmlElement::replace_text(const char* content) {
   xmlReplaceNode(xml_obj, txt);
 }
 
-XmlElement *
+xmlNode*
 XmlElement::import_element(XmlElement *element) {
-
-    xmlNode* new_child;
-
-    if (xml_obj->doc == element->xml_obj->doc) {
-       return element;
-    } else {
-        new_child = xmlDocCopyNode(element->xml_obj, xml_obj->doc, 1);
-        if(new_child == NULL) {
-            return NULL;
-        }
-
-        // this is like this because we cannot just create XmlElement objects
-        // we have to have handles to attach them to
-        // the problem with this approach tho is that the object could be reclaimed
-        // what prevents v8 from garbage collecting it?
-        v8::Local<v8::Object> new_elem = XmlElement::New(new_child);
-        return Nan::ObjectWrap::Unwrap<XmlElement>(new_elem);
-    }
+  return (xml_obj->doc == element->xml_obj->doc) ?
+        element->xml_obj : xmlDocCopyNode(element->xml_obj, xml_obj->doc, 1);
 }
 
 void

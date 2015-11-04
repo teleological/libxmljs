@@ -21,6 +21,7 @@
         'parserInternals.c',
         'pattern.c',
         'relaxng.c',
+        'rngparser.c',
         'SAX2.c',
         'SAX.c',
         'tree.c',

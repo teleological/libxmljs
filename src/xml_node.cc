@@ -428,27 +428,6 @@ findProxiedDescendant(xmlNode *xml_obj, xmlNode *skip_xml_obj=NULL) {
 
 XmlNode::~XmlNode() {
 
-  /*
-    if (xml_obj->type == XML_ATTRIBUTE_NODE) {
-      std::cout << "DESTROY: attribute\n";
-    }
-    else if (xml_obj->type == XML_ELEMENT_NODE) {
-      std::cout << "DESTROY: element\n";
-    }
-    else if (xml_obj->type == XML_TEXT_NODE) {
-      std::cout << "DESTROY: text\n";
-    }
-    else if (xml_obj->type == XML_COMMENT_NODE) {
-      std::cout << "DESTROY: comment\n";
-    }
-    else if (xml_obj->type == XML_DOCUMENT_NODE) {
-      std::cout << "DESTROY: document\n";
-    }
-    else {
-      std::cout << "DESTROY: node\n";
-    }
-  */
-
     // check if `xml_obj` has been freed so we don't access bad memory
     if (!this->xml_obj)
     {
@@ -467,97 +446,26 @@ XmlNode::~XmlNode() {
 
     xml_obj->_private = NULL; // detach node from this proxy
 
-    // FIXME: node may have been reattached after proxy construction
-    // (attach method should reset proxy doc)
-    if ((this->doc) && (this->doc->_private != NULL)) {
+    if ((this->doc) && (this->doc->_private != NULL)) { // ASSUME: constant doc
         XmlDocument* doc = static_cast<XmlDocument*>(xml_obj->doc->_private);
         doc->unref();
         this->doc = NULL;
     }
 
-    // BUG: unlinked child can't unref parent
-    // var child = parent.node("child"); // parent get ref'd
-    // child.remove(); // parent == NULL, but parent not unref'd
-    // child = null; global.gc(); // child wrapper is destroyed
-
     if (xml_obj->parent == NULL) {
-        std::cout << "Destroying proxy for unlinked node";
-        if ((xml_obj->type == XML_ELEMENT_NODE) && (xml_obj->name != NULL)) {
-            std::cout << " <" << xml_obj->name << "/>";
-        }
-        std::cout << " ... searching for proxied descendant\n";
-
         if (findProxiedDescendant(xml_obj) == NULL) {
-            std::cout << "No proxied descendants found; freeing\n";
-            // no descendants of unattached node are proxied: free subgraph
             xmlFreeNode(xml_obj);
-        }
-        else {
-            std::cout << "Proxied descendants found; deferring management to descendants\n";
         }
     }
     else {
-        std::cout << "Destroying proxy for linked node";
-        if ((xml_obj->type == XML_ELEMENT_NODE) && (xml_obj->name != NULL)) {
-            std::cout << " <" << xml_obj->name << "/>";
-        }
-        std::cout << " ... searching for proxied ancestor\n";
-
         xmlNode *ancestor = findProxiedAncestorOrRoot(xml_obj);
-        if (ancestor->_private == NULL) {
-
-            if (ancestor->parent == NULL) {
-
-                // Proxied node belongs to a tree unlinked
-                // to the document. For such trees, it is
-                // necessary to verify the existence of
-                // other proxies in the tree each time one
-                // is destroyed; otherwise tree would leak.
-
-                std::cout << "Unlinked root found; searching descendants\n";
-                if (findProxiedDescendant(ancestor, xml_obj) == NULL) {
-                    std::cout << "No proxied descendant of root; freeing root\n";
-                    xmlFreeNode(ancestor);
-                }
-                else {
-                    std::cout << "Found proxied descendant of root; deferring management\n";
-                }
-
-            }
-            else {
-                std::cout << "Found linked root; deferring management to document\n";
-            }
-
-        }
-        else {
-            std::cout << "Found proxied ancestor; deferring management to ancestor\n";
+        if ((ancestor->_private == NULL) &&
+            (ancestor->parent == NULL) &&
+            (findProxiedDescendant(ancestor, xml_obj) == NULL)) {
+            xmlFreeNode(ancestor);
         }
     }
 }
-
-/*
-void
-XmlNode::Unref() {
-    ObjectWrap::Unref();
-    if ((refs_ == 0) &&
-        (xml_obj->parent != NULL) &&
-        (xml_obj->parent->_private != NULL) &&
-        ((void*)xml_obj->doc != (void*)xml_obj->parent))
-    {
-
-        XmlDocument* doc = static_cast<XmlDocument*>(xml_obj->doc->_private);
-        std::cout << "WEAK: unref doc\n";
-        doc->unref();
-
-        XmlNode* parent = static_cast<XmlNode*>(xml_obj->parent->_private);
-        if (parent->refs_ > 0)
-        {
-            std::cout << "WEAK: unref parent\n";
-            parent->Unref();
-        }
-    }
-}
-*/
 
 v8::Local<v8::Value>
 XmlNode::get_doc() {

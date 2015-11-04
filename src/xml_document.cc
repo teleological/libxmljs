@@ -4,7 +4,6 @@
 #include <node_buffer.h>
 
 #include <cstring>
-#include <iostream>
 
 //#include <libxml/tree.h>
 #include <libxml/HTMLtree.h>

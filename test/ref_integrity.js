@@ -48,3 +48,21 @@ module.exports.double_free = function(assert) {
     assert.ok( children[0].attrs() );
     assert.done();
 };
+
+module.exports.unlinked_subtree = function(assert) {
+  var body = "<?xml version='1.0' encoding='UTF-8'?>\n" +
+      "<root><outer><middle><inner></inner></middle></outer></root>";
+  var doc = libxml.parseXml(body);
+
+  var inner = doc.get('//inner');
+  var outer = doc.get('//middle');
+
+  outer.remove();
+  outer = null;
+  global.gc();
+
+  // outer proxy is gc'd, but subtree can't be freed while inner proxy is held
+  assert.equal("inner", inner.name());
+  assert.done();
+};
+

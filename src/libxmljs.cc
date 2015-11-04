@@ -1,6 +1,5 @@
 // Copyright 2009, Squish Tech, LLC.
 
-#include <iostream>
 #include <v8.h>
 
 #include <libxml/xmlmemory.h>
@@ -101,12 +100,11 @@ char* xmlMemoryStrdupWrap(const char* str)
 // callback function for `xmlDeregisterNodeDefault`
 void xmlDeregisterNodeCallback(xmlNode* xml_obj)
 {
-    if (xml_obj->_private) // proxy is attached -- hopefully unreferenced!
+    if (xml_obj->_private)
     {
-        std::cout << "Deregistering free node: " << xml_obj->type << "\n";
         XmlNode* node = static_cast<XmlNode*>(xml_obj->_private);
-        node->xml_obj = NULL; // detach proxy from freed node
-        xml_obj->_private = NULL; // detach node from proxy
+        node->xml_obj = NULL;
+        xml_obj->_private = NULL;
     }
     return;
 }
@@ -123,9 +121,6 @@ LibXMLJS::LibXMLJS()
 
     // initialize libxml
     LIBXML_TEST_VERSION;
-
-    // initial memory usage
-    xml_memory_used = xmlMemUsed();
 }
 
 LibXMLJS::~LibXMLJS()

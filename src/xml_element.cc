@@ -1,6 +1,5 @@
 // Copyright 2009, Squish Tech, LLC.
 
-#include <iostream>
 #include <node.h>
 
 #include <cstring>
@@ -46,8 +45,6 @@ NAN_METHOD(XmlElement::New) {
                                 encoded);
   if (encoded)
       xmlFree(encoded);
-
-  std::cout << "New element: <" << elem->name << "/>\n";
 
   XmlElement* element = new XmlElement(elem);
   elem->_private = element;

@@ -98,7 +98,7 @@ NAN_METHOD(XmlNode::Parent) {
   XmlNode* node = Nan::ObjectWrap::Unwrap<XmlNode>(info.Holder());
   assert(node);
 
-  return info.GetReturnValue().Set(node->get_parent());
+  return info.GetReturnValue().Set(node->get_parent()); // returns doc for unlinked?
 }
 
 NAN_METHOD(XmlNode::PrevSibling) {
@@ -226,7 +226,7 @@ XmlNode::New(xmlNode* node)
     // wrap in an XmlElement.  There should probably be specific
     // wrapper types for text nodes etc., but this is what existing
     // code expects.
-    return scope.Escape(XmlElement::New(node));
+    return scope.Escape(XmlElement::New(node)); // FIXME
   }
 }
 
@@ -359,7 +359,7 @@ XmlNode::get_parent() {
   Nan::EscapableHandleScope scope;
 
   if (xml_obj->parent) {
-      return scope.Escape(XmlElement::New(xml_obj->parent));
+      return scope.Escape(XmlElement::New(xml_obj->parent)); // FIXME
   }
 
   return scope.Escape(XmlDocument::New(xml_obj->doc));

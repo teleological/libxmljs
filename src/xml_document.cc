@@ -159,9 +159,10 @@ NAN_METHOD(XmlDocument::SetDtd)
     //No good way of unsetting the doctype if it is previously set...this allows us to.
     xmlDtdPtr dtd = xmlGetIntSubset(document->xml_obj);
 
-    xmlUnlinkNode((xmlNodePtr) dtd);
+    xmlUnlinkNode((xmlNodePtr) dtd); // SUSPECT: unchecked
     xmlFreeNode((xmlNodePtr) dtd);
 
+    // why not encoding?
     xmlCreateIntSubset(document->xml_obj, (const xmlChar *) *name, (const xmlChar *) extId, (const xmlChar *) sysId);
 
     return info.GetReturnValue().Set(info.Holder());
@@ -456,7 +457,7 @@ XmlDocument::XmlDocument(xmlDoc* doc)
 XmlDocument::~XmlDocument()
 {
     xml_obj->_private = NULL;
-    xmlFreeDoc(xml_obj);
+    xmlFreeDoc(xml_obj); // FIXME: could conceivably be freed
 }
 
 void

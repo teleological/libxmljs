@@ -1,6 +1,10 @@
 // Copyright 2009, Squish Tech, LLC.
 #include "xml_attribute.h"
 
+/*
+ * FIXME: parent ref (inherits node)
+ */
+
 namespace libxmljs {
 
 Nan::Persistent<v8::FunctionTemplate> XmlAttribute::constructor_template;
@@ -19,7 +23,7 @@ XmlAttribute::New(xmlNode* xml_obj, const xmlChar* name, const xmlChar* value)
     assert(attr);
 
     if (attr->_private) {
-        return scope.Escape(static_cast<XmlNode*>(xml_obj->_private)->handle());
+        return scope.Escape(static_cast<XmlAttribute*>(xml_obj->_private)->handle());
     }
 
     XmlAttribute* attribute = new XmlAttribute(attr);
@@ -35,7 +39,7 @@ XmlAttribute::New(xmlAttr* attr)
     assert(attr->type == XML_ATTRIBUTE_NODE);
 
     if (attr->_private) {
-        return scope.Escape(static_cast<XmlNode*>(attr->_private)->handle());
+        return scope.Escape(static_cast<XmlAttribute*>(attr->_private)->handle());
     }
 
     XmlAttribute* attribute = new XmlAttribute(attr);
@@ -121,7 +125,9 @@ XmlAttribute::set_value(const char* value) {
     // Encode our content
     buffer = xmlEncodeEntitiesReentrant(xml_obj->doc, (const xmlChar*)value);
 
+    // why not xmlNewDocText(xml_obj->doc, buffer) ??
     xml_obj->children = xmlStringGetNodeList(xml_obj->doc, buffer);
+
     xml_obj->last = NULL;
     tmp = xml_obj->children;
 
@@ -137,10 +143,13 @@ XmlAttribute::set_value(const char* value) {
   }
 }
 
+// NOTE: assume parent is always element
 v8::Local<v8::Value>
 XmlAttribute::get_element() {
     Nan::EscapableHandleScope scope;
-    return scope.Escape(XmlElement::New(xml_obj->parent));
+    return (xml_obj->parent == NULL) ?
+        scope.Escape(Nan::Null()) :
+        scope.Escape(XmlElement::New(xml_obj->parent));
 }
 
 v8::Local<v8::Value>

@@ -188,6 +188,7 @@ XmlFraternalNode::replace_text(const char* content) {
 
 xmlNode*
 XmlFraternalNode::import_node(XmlFraternalNode *node) {
+  // FIXME: wrapper should adopt copied node?
   return (xml_obj->doc == node->xml_obj->doc) ?
         node->xml_obj : xmlDocCopyNode(node->xml_obj, xml_obj->doc, 1);
 }

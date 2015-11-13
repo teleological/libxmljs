@@ -97,7 +97,7 @@ NAN_METHOD(XmlElement::Attrs) {
   return info.GetReturnValue().Set(element->get_attrs());
 }
 
-NAN_METHOD(XmlElement::AddChild) {
+NAN_METHOD(XmlElement::AddChild) { // FIXME: test with text, attribute, etc.
   XmlElement* element = Nan::ObjectWrap::Unwrap<XmlElement>(info.Holder());
   assert(element);
 
@@ -129,7 +129,7 @@ NAN_METHOD(XmlElement::AddCData) {
                                   (const xmlChar*)content,
                                   xmlStrlen((const xmlChar*)content));
 
-  element->add_cdata(elem);
+  element->add_child(elem);
   return info.GetReturnValue().Set(info.Holder());
 }
 
@@ -253,14 +253,9 @@ XmlElement::get_attrs() {
 
 void
 XmlElement::add_child(xmlNode* child) {
+  // FIXME: will be merged and freed if added and last child are text
   xmlAddChild(xml_obj, child);
 }
-
-void
-XmlElement::add_cdata(xmlNode* cdata) {
-  xmlAddChild(xml_obj, cdata);
-}
-
 
 v8::Local<v8::Value>
 XmlElement::get_child(int32_t idx) {
@@ -276,7 +271,7 @@ XmlElement::get_child(int32_t idx) {
   if (!child)
     return scope.Escape(Nan::Null());
 
-  return scope.Escape(XmlElement::New(child));
+  return scope.Escape(XmlElement::New(child)); // FIXME: can't assume child is an element!
 }
 
 v8::Local<v8::Value>
@@ -319,7 +314,7 @@ XmlElement::New(xmlNode* node)
 {
     Nan::EscapableHandleScope scope;
     if (node->_private) {
-        return scope.Escape(static_cast<XmlNode*>(node->_private)->handle());
+        return scope.Escape(static_cast<XmlElement*>(node->_private)->handle());
     }
 
     XmlElement* element = new XmlElement(node);
